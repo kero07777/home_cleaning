@@ -276,7 +276,7 @@ svg.plan{direction:ltr;width:100%;height:auto;display:block;filter:drop-shadow(0
 .dth{height:90px;border-radius:18px;background-size:cover;background-position:center;margin-bottom:12px}
 @media (max-width:860px){.wk{grid-template-columns:repeat(7,minmax(0,1fr));gap:4px}.wd2{padding:8px 0;min-height:96px;font-size:11px}.wd2 .n{font-size:17px}.hdrmid .cap{display:none}.rc2{flex:0 0 118px}.banner .chipok .sp{font-size:26px}}
 @media (max-width:999px){.today{grid-template-columns:minmax(0,1fr);grid-template-areas:"map" "side" "rooms" "banner"}.ar-side{display:grid;grid-template-columns:1fr 1fr;align-items:start}}
-@media (max-width:700px){.ar-side{display:flex;flex-direction:column}}
+
 
 .nxt{margin-top:8px;text-align:center;font-size:12.5px;color:var(--mute)}.nxt b{color:var(--ink)}
 .minis{display:grid;grid-template-columns:1fr 1fr;gap:18px;margin-top:14px;padding-top:12px;border-top:1px solid #edf0fa}
@@ -316,6 +316,46 @@ svg.plan,.chip,.hit{-webkit-user-select:none;user-select:none}
 }
 @media (hover:none){.hit:hover{fill:transparent}.nb:hover{background:transparent}.nb.on:hover{background:inherit}.rc2:hover{transform:none;box-shadow:none}.xbtn:hover{color:inherit}}
 @media (max-width:700px){.bn{font-size:13px;padding:10px 12px;gap:8px;line-height:1.5}.bn button{min-height:40px}}
+
+/* ===== موبايل: كارت الحالة و"على الآن" جنب بعض تحت الخريطة ===== */
+@media (max-width:700px){
+ .ar-side{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:10px;align-items:stretch}
+ .ar-status,.ar-now{padding:12px 10px;border-radius:22px;min-width:0}
+ .ar-side .cardhead{margin-bottom:8px;gap:6px}
+ .ar-side .cardhead h3{font-size:15px}
+ .ar-side .cardhead .ic svg{width:20px;height:20px}
+ .ringw{width:108px;height:108px;margin:0 auto 8px}
+ .ringw .rc b{font-size:23px}.ringw .rc span{font-size:11px;margin-top:2px}
+ .ringw>svg{width:100%;height:100%}
+ .ringw .rc svg{width:16px;height:16px}
+ .ar-side .cardhead h3{font-size:14.5px;line-height:1.3}
+ .ar-status .pillr{padding:6px 8px;margin-top:5px;border-radius:12px;gap:6px}
+ .ar-status .pillr .lbl{font-size:12.5px}
+ .ar-status .pillr .num{font-size:15px;min-width:0}
+ .ar-status .pillr .dot{display:none}
+ .ar-status .pillr .num{margin-inline-start:auto}
+ .ar-status .pillr.est{padding:6px 8px}
+ .ar-status .pillr.est>span{display:none}
+ .ar-status .pillr.est .t2 small{font-size:11.5px}
+ .ar-status .pillr.est .t2 b{font-size:14px}
+ .ar-now{display:flex;flex-direction:column}
+ .ar-now .nowrow{padding:7px 8px;gap:7px;margin-bottom:6px;border-radius:14px}
+ .ar-now .nowrow .tm{display:none}
+ .ar-now .nowrow .ck{width:26px;height:26px;flex:0 0 26px;order:-1}
+ .ar-now .nowrow .nt b{font-size:12.5px;line-height:1.35}
+ .ar-now .nowrow .nt span{font-size:11px}
+ .ar-now .btn{margin-top:auto!important;padding:11px 6px;font-size:14px;gap:5px}
+ .ar-now .btn svg{width:15px;height:15px}
+ .ar-now .nxt{font-size:11px;line-height:1.4}
+}
+
+.dfocus{margin-inline-start:auto;background:#eef2ff;color:#2f4bb8;border-radius:999px;padding:5px 12px;font-size:13px;font-weight:700;line-height:1.4;max-width:100%}
+.dfocus b{font-weight:800}.dfocus em{font-style:normal;color:var(--red);font-weight:800}
+.ar-rooms .cardhead{flex-wrap:wrap;gap:8px}
+.rc2{position:relative}
+.rc2.istoday{box-shadow:0 0 0 2px var(--blue);border-color:transparent}
+.rc2 .tdy{position:absolute;top:-8px;inset-inline-end:8px;background:var(--blue);color:#fff;font-style:normal;font-size:10.5px;font-weight:800;padding:2px 8px;border-radius:999px;z-index:1}
+.zdsel{min-height:34px;padding:4px 8px;font-size:14px;max-width:none;display:inline-block;vertical-align:middle}
 </style>
 </head>
 <body>
@@ -451,7 +491,7 @@ function sanitize(d,allowEmpty){
  for(const x of d.tasks){
   if(!x||typeof x!=='object'||typeof x.id!=='string'||!x.id||ids.has(x.id)||!ZBY[x.zone]||typeof x.title!=='string'||!x.title.trim()){rep.tasks++;continue}
   let f=x.freq;if(!FREQ[f]){f='asneeded';rep.fixed++}
-  ids.add(x.id);tasks.push(Object.assign({},x,{id:x.id,zone:x.zone,title:x.title.slice(0,80),freq:f,mins:Math.max(0,Math.min(240,+x.mins||0))}));
+  ids.add(x.id);tasks.push(Object.assign({},x,{id:x.id,zone:x.zone,title:x.title.slice(0,80),freq:f,mins:Math.max(0,Math.min(240,+x.mins||0)),wd:(Number.isInteger(x.wd)&&x.wd>=0&&x.wd<=6)?x.wd:undefined}));
  }
  const arch=[];
  if(Array.isArray(d.archive))for(const x of d.archive){
@@ -473,9 +513,10 @@ function sanitize(d,allowEmpty){
  }
  const flags={};if(d.flags&&typeof d.flags==='object')for(const z in d.flags)if(ZBY[z]&&d.flags[z])flags[z]=true;
  const off={};if(d.off&&typeof d.off==='object'&&!Array.isArray(d.off))for(const id in d.off)if(ids.has(id)&&Number.isInteger(d.off[id])&&d.off[id]>=0&&d.off[id]<400)off[id]=d.off[id];
+ const zday={};if(d.zday&&typeof d.zday==='object'&&!Array.isArray(d.zday))for(const z in d.zday)if(ZBY[z]&&Number.isInteger(d.zday[z])&&d.zday[z]>=0&&d.zday[z]<=6)zday[z]=d.zday[z];
  let inst=isDate(d.installed)?d.installed:null;
  if(!inst){const all=[...Object.values(done).flat(),...Object.keys(days)].sort();inst=all[0]||iso(new Date())}
- return{data:{v:2,installed:inst,tasks,archive:arch,done,days,flags,off,savedAt:typeof d.savedAt==='string'?d.savedAt:undefined},rep};
+ return{data:{v:2,installed:inst,tasks,archive:arch,done,days,flags,off,zday,sched:(d.sched===2||d.sched===3)?d.sched:undefined,savedAt:typeof d.savedAt==='string'?d.savedAt:undefined},rep};
 }
 const Store={
  err:null,hold:false,dry:false,note:null,at:null,
@@ -530,6 +571,17 @@ const NUMLOC='ar-EG-u-nu-latn';
 const fmt=(ds,o)=>parse(ds).toLocaleDateString(NUMLOC,o);
 const addMonths=(s,n)=>{const d=parse(s),day=d.getDate();d.setDate(1);d.setMonth(d.getMonth()+n);const last=new Date(d.getFullYear(),d.getMonth()+1,0).getDate();d.setDate(Math.min(day,last));return iso(d)};
 const nextAfter=(s,fr)=>fr==='monthly'?addMonths(s,1):addDays(s,FREQ[fr].d);
+/* ===== نظام الأيام: المنطقة + يوم الأسبوع + التكرار ===== */
+const WDN=['الأحد','الاثنين','الثلاثاء','الأربعاء','الخميس','الجمعة','السبت'];
+const ZDAY={entrance:6,corridor:6,living:6,bath_guest:6,dressing:0,master:0,bed2:1,bed3:2,kitchen:3,windows:3,bath_main:4,b1:4,b2:4,b3:4};
+const zDay=z=>S.zday&&Number.isInteger(S.zday[z])?S.zday[z]:(ZDAY[z]===undefined?null:ZDAY[z]);
+const taskWd=x=>Number.isInteger(x.wd)?x.wd:zDay(x.zone);
+const PERIODIC=f=>!!(FREQ[f]&&FREQ[f].d>=7);
+const wdOf=ds=>parse(ds).getDay();
+const snapFwd=(ds,wd)=>{if(wd===null)return ds;for(let i=0;i<7;i++){const c=addDays(ds,i);if(wdOf(c)===wd)return c}return ds};
+const snapNear=(ds,wd)=>{if(wd===null)return ds;for(let i=0;i<=3;i++){const a=addDays(ds,-i),b=addDays(ds,i);if(wdOf(a)===wd)return a;if(wdOf(b)===wd)return b}return ds};
+const nxt=(x,s)=>{const n=nextAfter(s,x.freq);return PERIODIC(x.freq)?snapNear(n,taskWd(x)):n};
+const weekStart=ds=>addDays(ds,-((wdOf(ds)+1)%7));
 const daysTxt=n=>n===1?'يوم':n===2?'يومين':n<=10?n+' أيام':n+' يومًا';
 
 const freshState=()=>({v:2,installed:iso(new Date()),tasks:seedTasks(),done:{},days:{},flags:{},off:{}});
@@ -540,25 +592,107 @@ let TD=iso(new Date()),ST={},G={};
 const taskById=id=>S.tasks.find(x=>x.id===id);
 const lastDone=x=>{const a=S.done[x.id]||[];let m=null;for(const d of a)if(!m||d>m)m=d;return m};
 /* توزيع أول ميعاد للمهام غير اليومية بحيث يتوازن عبء الأيام (يتحسب مرة ويتخزّن في S.off) */
+const NEWT=[
+ /* [id, منطقة, عنوان, تكرار, دقائق, يوم(اختياري)] */
+ ['w_liv_vent','living','تهوية الشقة','daily',2],
+ ['w_liv_reset','living','Reset سريع للشقة مساءً وإعادة الأشياء لأماكنها','daily',10],
+ ['w_liv_floor','living','تنظيف الأرضيات في المناطق المستخدمة (حسب الحاجة)','asneeded',8],
+ ['w_liv_mirror','living','تنظيف المرايات والزجاج','weekly',5],
+ ['w_liv_behind','living','تنظيف خلف وتحت الأثاث','monthly',15],
+ ['w_fri_pass','living','مرور سريع على الشقة وترتيب عام (Weekly Reset)','weekly',15,5],
+ ['w_fri_bissell','living','Bissell للمناطق المستخدمة (Catch-up)','asneeded',10],
+ ['w_bath_check','bath_main','مراجعة الحمامات','daily',3],
+ ['w_bath_edges','bath_main','تنظيف الحواف والزوايا','monthly',12],
+ ['w_bg_edges','bath_guest','تنظيف الحواف والزوايا','monthly',10],
+ ['w_ms_bissell','master','تنظيف الأرضية بالـBissell','weekly',10],
+ ['w_ms_under','master','تنظيف تحت السرير','monthly',12],
+ ['w_ms_doors','master','تنظيف الأبواب والإطارات','monthly',8],
+ ['w_win_master','windows','تنظيف شبابيك الماستر','monthly',8,0],
+ ['w_kid_bissell','bed2','تنظيف الأرضية بالـBissell','weekly',10],
+ ['w_kid_surf','bed2','تنظيف الأسطح','weekly',5],
+ ['w_kid_under','bed2','تنظيف تحت الأسرة','monthly',12],
+ ['w_sto_sort','bed3','ترتيب وتصنيف','weekly',15],
+ ['w_sto_clutter','bed3','تنظيم الكراكيب','weekly',10],
+ ['w_sto_bissell','bed3','تنظيف الأرضية بالـBissell','weekly',10],
+ ['w_sto_reorg','bed3','إعادة تنظيم كاملة','monthly',30],
+ ['w_sto_purge','bed3','التخلص من الأشياء غير المطلوبة','monthly',15],
+ ['w_k_bissell','kitchen','Bissell للأرضية والزوايا','weekly',12],
+ ['w_k_fridge','kitchen','تنظيف الثلاجة','monthly',20],
+ ['w_k_cab','kitchen','تنظيف دولاب من الداخل (بالتناوب)','monthly',20],
+ ['w_k_appl','kitchen','تنظيف الأجهزة من الداخل','monthly',15],
+ ['w_k_behind','kitchen','تنظيف خلف/تحت الأجهزة','monthly',15],
+ ['w_b1_corner','b1','تنظيف الزوايا والحواف','monthly',10],
+ ['w_b2c_corner','b2','تنظيف الزوايا والحواف','monthly',10],
+ ['w_b3_corner','b3','تنظيف الزوايا والحواف','monthly',10]
+];
+const norm=t=>String(t).replace(/[\s\u064B-\u065F]/g,'').replace(/[أإآ]/g,'ا').replace(/ى/g,'ي').replace(/ة/g,'ه').toLowerCase();
+/* تصحيح النسخة 2 → 3: غرفة 2 = الأطفال، غرفة 3 = التخزين */
+function fixV3(){
+ Store.stashPre(S);
+ const ZM={w_b3_bissell:'bed2',w_b3_surf:'bed2',w_b3_under:'bed2',w_b2_sort:'bed3',w_b2_clutter:'bed3',w_b2_bissell:'bed3',w_b2_reorg:'bed3',w_b2_purge:'bed3'};
+ for(const x of S.tasks){
+  if(ZM[x.id])x.zone=ZM[x.id];
+  if(x.zone==='windows'&&x.title.includes('غرفة 2')&&x.wd===2)x.wd=1;
+  else if(x.zone==='windows'&&x.title.includes('غرفة 3')&&x.wd===1)x.wd=2;
+  if(x.zone==='b3'&&x.title.includes('ترتيب الكراسي')&&x.wd===1)x.wd=2;
+ }
+ if(S.zday){const a=S.zday.bed2,b=S.zday.bed3;delete S.zday.bed2;delete S.zday.bed3;if(a!==undefined)S.zday.bed3=a;if(b!==undefined)S.zday.bed2=b}
+ S.off={};S.sched=3;
+ Store.note={k:'schedule',n:0,fix:1};
+ Store.save(S);
+}
+/* ترقية لمرة واحدة: ربط المهام بأيام الأسبوع + إضافة الناقص بدون تكرار */
+function migrate(){
+ if(S.sched===3||Store.hold||Store.dry)return;
+ if(S.sched===2)return fixV3();
+ Store.stashPre(S);
+ let added=0;
+ const have=(z,t)=>S.tasks.concat(S.archive||[]).some(y=>y.zone===z&&norm(y.title)===norm(t));
+ const ids=new Set(S.tasks.concat(S.archive||[]).map(y=>y.id));
+ for(const r of NEWT){
+  if(ids.has(r[0])||have(r[1],r[2]))continue;
+  const t={id:r[0],zone:r[1],title:r[2],freq:r[3],mins:r[4]};if(r[5]!==undefined)t.wd=r[5];
+  S.tasks.push(t);added++;
+ }
+ const WINDAY=[['المطبخ',3],['غرفة 2',1],['غرفة 3',2],['الماستر',0]],BALDAY={b1:6,b2:0,b3:2};
+ for(const x of S.tasks){
+  if(Number.isInteger(x.wd))continue;
+  if(x.zone==='windows'){const m=WINDAY.find(w=>x.title.includes(w[0]));if(m)x.wd=m[1]}
+  else if(BALDAY[x.zone]!==undefined&&x.title.includes('ترتيب الكراسي'))x.wd=BALDAY[x.zone];
+ }
+ if(!S.zday||typeof S.zday!=='object')S.zday={};
+ S.off={};S.sched=3;
+ Store.note={k:'schedule',n:added};
+ Store.save(S);
+}
 function balance(){
  if(!S.off||typeof S.off!=='object'||Array.isArray(S.off))S.off={};
- const H=120,load=new Array(H).fill(0),per=x=>FREQ[x.freq].d;
- const rec=S.tasks.filter(x=>FREQ[x.freq]&&per(x)>1),has=x=>Number.isInteger(S.off[x.id]);
- for(const x of rec)if(has(x))for(let t=S.off[x.id];t<H;t+=per(x))load[t]+=(+x.mins||0)+1;
+ const H=130,load=new Array(H).fill(0);
+ const rec=S.tasks.filter(x=>FREQ[x.freq]&&FREQ[x.freq].d>1),has=x=>Number.isInteger(S.off[x.id]);
+ const place=(x,o,w)=>{let c=firstDue(x,o),t=diff(S.installed,c);for(let k=0;k<60&&t<H;k++){if(t>=0)load[t]+=w;c=nxt(x,c);t=diff(S.installed,c)}};
+ const test=(x,o,w)=>{let c=firstDue(x,o),t=diff(S.installed,c),m=0,sm=0;for(let k=0;k<60&&t<H;k++){if(t>=0){m=Math.max(m,load[t]+w);sm+=load[t]}c=nxt(x,c);t=diff(S.installed,c)}return[m,sm]};
+ for(const x of rec)if(has(x))place(x,S.off[x.id],(+x.mins||0)+1);
+ const per=x=>FREQ[x.freq].d;
  const todo=rec.filter(x=>!has(x)).sort((a,b)=>per(a)-per(b)||(+b.mins||0)-(+a.mins||0)||(a.id<b.id?-1:1));
  for(const x of todo){
-  const d=per(x),w=(+x.mins||0)+1;let best=0,bm=Infinity,bs=Infinity;
-  for(let o=0;o<Math.min(d,H);o++){let m=0,sm=0;for(let t=o;t<H;t+=d){m=Math.max(m,load[t]+w);sm+=load[t]}
-   if(m<bm||(m===bm&&sm<bs)){bm=m;bs=sm;best=o}}
-  S.off[x.id]=best;for(let t=best;t<H;t+=d)load[t]+=w;
+  const d=per(x),w=(+x.mins||0)+1,step=PERIODIC(x.freq)?7:1,lim=PERIODIC(x.freq)&&d<=7?1:d;
+  let best=0,bm=Infinity,bs=Infinity;
+  for(let o=0;o<lim;o+=step){const[m,sm]=test(x,o,w);if(m<bm||(m===bm&&sm<bs)){bm=m;bs=sm;best=o}}
+  S.off[x.id]=best;place(x,best,w);
  }
  if(todo.length)Store.save(S);
+}
+function firstDue(x,o){
+ const d=FREQ[x.freq].d;
+ if(!PERIODIC(x.freq))return addDays(S.installed,d>1?o:0);
+ return snapFwd(addDays(S.installed,d>7?Math.floor(o/7)*7:0),taskWd(x));
 }
 function dueDate(x){
  const f=FREQ[x.freq];if(!f||!f.d)return null;
  let lb=null;for(const d of (S.done[x.id]||[]))if(d<TD&&(!lb||d>lb))lb=d;
+ if(lb)return nxt(x,lb);
  const o=S.off&&Number.isInteger(S.off[x.id])?S.off[x.id]:hs(x.id)%f.d;
- return lb?nextAfter(lb,x.freq):addDays(S.installed,f.d>1?o:0);
+ return firstDue(x,o);
 }
 function tstate(x){
  const dd=dueDate(x),isDone=(S.done[x.id]||[]).includes(TD);
@@ -601,13 +735,14 @@ function globalStats(){
 }
 function pendingList(){
  return S.tasks.filter(x=>{const s=tstate(x);return s.inToday&&s.kind!=='done'})
-  .sort((a,b)=>(tstate(b).kind==='overdue')-(tstate(a).kind==='overdue')||ZORD[a.zone]-ZORD[b.zone]);
+  .sort((a,b)=>{const F=focusSet();return (tstate(b).kind==='overdue')-(tstate(a).kind==='overdue')||(F.has(b.zone)-F.has(a.zone))||ZORD[a.zone]-ZORD[b.zone]});
 }
 /* خطة الجولة: المهام المستحقة مجمّعة حسب الغرفة، الأكثر إلحاحًا أولًا */
 function roomPlan(){
  const m={};
  for(const x of pendingList()){const r=m[x.zone]||(m[x.zone]={z:x.zone,ids:[],mins:0,over:0});r.ids.push(x.id);r.mins+=+x.mins||0;if(tstate(x).kind==='overdue')r.over++}
- return Object.values(m).sort((a,b)=>(b.over>0)-(a.over>0)||b.over-a.over||ZORD[a.z]-ZORD[b.z]);
+ const F=focusSet();
+ return Object.values(m).sort((a,b)=>(b.over>0)-(a.over>0)||b.over-a.over||(F.has(b.z)-F.has(a.z))||ZORD[a.z]-ZORD[b.z]);
 }
 /* الغرف المحتاجة اهتمام: إعادة تنظيف / متأخرة / الأكثر تبقّيًا */
 function attention(){
@@ -632,8 +767,23 @@ function zoneExtra(zid){
  for(let i=1;i<=30;i++){const r=S.days[addDays(TD,-i)];const zr=r&&r.zones&&r.zones[zid];if(zr){seen++;if(zr[0]<zr[1])late++}}
  return{hasDeep,deep,seen,late};
 }
+function dayExtra(zid){
+ const ts=S.tasks.filter(x=>x.zone===zid),per=ts.filter(x=>PERIODIC(x.freq)),o=[];
+ const zd=zDay(zid);
+ if(zd!==null)o.push(`<p>يوم التنظيف: <select class="fsel zdsel" data-chg="zday" data-z="${zid}" aria-label="يوم التنظيف">${WDN.map((n,i)=>`<option value="${i}"${i===zd?' selected':''}>${n}</option>`).join('')}</select></p>`);
+ const wk=ts.filter(x=>x.freq==='weekly'),ws=weekStart(TD);
+ if(wk.length){const dn=wk.filter(x=>(S.done[x.id]||[]).some(d=>d>=ws&&d<=addDays(ws,6))).length;o.push(`<p>أسبوعي هذا الأسبوع: <b>${dn}/${wk.length}</b></p>`)}
+ const mo=ts.filter(x=>x.freq==='monthly'||x.freq==='deep');
+ if(mo.length){const du=mo.filter(x=>{const s=tstate(x);return s.inToday&&s.kind!=='done'}).length;o.push(`<p>شهري/عميق مستحق: <b style="color:${du?'var(--amber)':'var(--green)'}">${du}</b> من ${mo.length}</p>`)}
+ if(per.length){
+  let nd=null;
+  for(const x of per){const s=tstate(x);let d=s.kind==='done'?nxt(x,TD):dueDate(x);if(s.inToday&&s.kind!=='done')d=TD;if(d&&(!nd||d<nd))nd=d}
+  if(nd)o.push(`<p>الموعد القادم: <b>${nd===TD?'اليوم':fmt(nd,{weekday:'long',day:'numeric',month:'long'})}</b></p>`);
+ }
+ return o.join('');
+}
 function extraHTML(zid){
- const e=zoneExtra(zid),o=[];
+ const e=zoneExtra(zid),o=[dayExtra(zid)];
  if(e.hasDeep){const n=e.deep?diff(e.deep,TD):null;o.push(`<p>آخر تنظيف عميق: <b>${n===null?'لم يتم بعد':n===0?'اليوم':'من '+daysTxt(n)}</b></p>`)}
  if(e.seen)o.push(`<p>اتأخرت <b style="color:${e.late?'var(--red)':'var(--green)'}">${e.late}</b> مرة في آخر 30 يوم${e.seen<30?` <span style="font-size:12px">(من ${e.seen} يوم مسجل)</span>`:''}</p>`);
  return o.join('');
@@ -653,9 +803,9 @@ function setDone(id,val,quiet){
 /* هل المهمة مجدولة في يوم مستقبلي؟ (بتحسب من آخر تنفيذ حتى لو حصل النهارده أو بدري) */
 function projected(x,ds){
  const ld=lastDone(x);let st;
- if(ld===TD)st=nextAfter(TD,x.freq);else{const dd=dueDate(x);st=dd<TD?TD:dd}
+ if(ld===TD)st=nxt(x,TD);else{const dd=dueDate(x);st=dd<TD?TD:dd}
  if(ds<st||diff(st,ds)>800)return false;
- let c=st;for(let i=0;i<900&&c<ds;i++)c=nextAfter(c,x.freq);
+ let c=st;for(let i=0;i<900&&c<ds;i++)c=nxt(x,c);
  return c===ds;
 }
 function occ(ds){
@@ -764,11 +914,23 @@ function statusText(x,s){
  if(s.kind==='upcoming'){const n=diff(TD,s.due);return[`القادمة بعد ${daysTxt(n)}`,'']}
  return['عند الحاجة',''];
 }
+const focusSet=()=>wdOf(TD)===5?new Set():new Set(dayZones(wdOf(TD)));
+function dayZones(wd){
+ const set=new Set();
+ for(const x of S.tasks)if(PERIODIC(x.freq)&&taskWd(x)===wd&&x.id!=='w_fri_pass')set.add(x.zone);
+ return Z.filter(z=>set.has(z.id)).map(z=>z.id);
+}
+function dayLabel(ds){
+ const wd=wdOf(ds);
+ if(wd===5)return 'Catch-up وإعادة ضبط الأسبوع';
+ const names=[];for(const z of dayZones(wd)){const n=/^b\d$/.test(z)?'البلكونات':ZBY[z].sh;if(!names.includes(n))names.push(n)}
+ return names.join(' · ')||'—';
+}
 const freqOpts=cur=>Object.keys(FREQ).map(k=>`<option value="${k}"${k===cur?' selected':''}>${FREQ[k].ar}</option>`).join('');
 function taskRow(x,o){
  o=o||{};const s=tstate(x),done=s.kind==='done',st=statusText(x,s);
  return `<div class="trow ${s.kind}"><button class="ck ${done?'on':''}" data-act="toggle" data-id="${x.id}" aria-pressed="${done}" aria-label="${esc(x.title)}">${done?ico('check',17):''}</button>
- <div class="tt"><div class="tn">${esc(x.title)}</div><div class="ts ${st[1]}">${o.zone?esc(ZBY[x.zone].sh)+'<i>·</i>':''}${st[0]}<i>·</i>${x.mins||0} د</div></div>
+ <div class="tt"><div class="tn">${esc(x.title)}</div><div class="ts ${st[1]}">${o.zone?esc(ZBY[x.zone].sh)+'<i>·</i>':''}${st[0]}<i>·</i>${x.mins||0} د${PERIODIC(x.freq)&&taskWd(x)!==null?'<i>·</i>'+WDN[taskWd(x)]:''}</div></div>
  <select class="fsel" data-chg="freq" data-id="${x.id}" aria-label="التكرار">${freqOpts(x.freq)}</select></div>`;
 }
 function grouped(list,rowFn){
@@ -808,7 +970,8 @@ function gCard(g){
  const s=groupStats(g),ok=s.status==='ok';
  const col=s.status==='late'?'var(--red)':s.status==='redo'?'var(--purple)':ok?'var(--green)':'var(--amber)';
  const tx=s.status==='late'?'متأخرة':s.status==='redo'?'إعادة تنظيف':ok?'مكتملة':'باقي مهام';
- return `<button class="rc2" data-act="zone" data-z="${g.id}"><span class="th th-${g.th}"></span><b>${g.ar}</b><div class="cnt">${s.done}/${s.set}<i style="background:${col}">${ico(ok?'check':'hist',13)}</i></div><small style="color:${col}">${tx}</small></button>`;
+ const tz=wdOf(TD)!==5&&g.zones.some(z=>dayZones(wdOf(TD)).includes(z));
+ return `<button class="rc2${tz?' istoday':''}" data-act="zone" data-z="${g.id}">${tz?'<em class="tdy">اليوم</em>':''}<span class="th th-${g.th}"></span><b>${g.ar}</b><div class="cnt">${s.done}/${s.set}<i style="background:${col}">${ico(ok?'check':'hist',13)}</i></div><small style="color:${col}">${tx}</small></button>`;
 }
 function nextLine(){
  const p=roomPlan()[0];if(!p)return '';
@@ -837,7 +1000,7 @@ function vToday(){
   <button class="btn p" data-act="start" style="margin-top:8px" ${now.length?'':'disabled style="opacity:.5"'}>${ico('play',18)} ${t('start')}</button>
   ${nextLine()}</div>
  </div>
- <div class="card ar-rooms"><div class="cardhead"><span class="ic">${ico('home',24)}</span><h3>${t('rooms_title')}</h3></div>
+ <div class="card ar-rooms"><div class="cardhead"><span class="ic">${ico('home',24)}</span><h3>${t('rooms_title')}</h3><span class="dfocus"><b>${WDN[wdOf(TD)]}</b> ${esc(dayLabel(TD))}${g.over?` <em>· متأخر ${g.over}</em>`:''}</span></div>
   <div class="rooms">${GROUPS.map(gCard).join('')}</div>${miniBlocks()}</div>
  <div class="ar-banner banner"><div class="msg">💜 ${t('banner')}</div><div class="chipok"><span>🙂 ${g.set&&g.done===g.set?'ممتاز! خلصت':'ممتاز! استمر'}</span><span class="sp">🌱</span></div></div>
  </section>`;
@@ -869,7 +1032,7 @@ function dayPanel(){
   return `<div class="trow ${past?'done':''}"><span class="ck ${past?'on':''}" style="border-style:${past?'solid':'dashed'}">${past?ico('check',17):''}</span><div class="tt"><div class="tn">${esc(x.title)}</div><div class="ts">${esc(ZBY[x.zone].sh)}<i>·</i>${k}<i>·</i>${FREQ[x.freq].ar}</div></div></div>`;
  }):'<div class="empty">لا توجد مهام في هذا اليوم</div>';
  const cnt=TYPES.slice(0,4).map(([id,n,c])=>{const k=list.filter(r=>FREQ[r.x.freq].type===id).length;return k?`<span class="stc" style="background:${c}22;color:${c}">${n.replace('التنظيف ','')} ${k}</span>`:''}).join(' ');
- return `<div class="card"><div class="zh"><h3>${UI.sel===TD?'اليوم — ':''}${fmt(UI.sel,{weekday:'long',day:'numeric',month:'long'})}</h3></div><div style="margin:2px 0 6px;display:flex;gap:6px;flex-wrap:wrap">${cnt}</div>${body}</div>`;
+ return `<div class="card"><div class="zh"><h3>${UI.sel===TD?'اليوم — ':''}${fmt(UI.sel,{weekday:'long',day:'numeric',month:'long'})}</h3></div><div class="sub" style="margin:0 0 6px">📅 ${esc(dayLabel(UI.sel))}</div><div style="margin:2px 0 6px;display:flex;gap:6px;flex-wrap:wrap">${cnt}</div>${body}</div>`;
 }
 const ftChips=()=>`<div class="chips"><button class="chipb ${UI.ft==='all'?'on':''}" data-act="ft" data-t="all">الكل</button>${TYPES.slice(0,4).map(([id,n])=>`<button class="chipb ${UI.ft===id?'on':''}" data-act="ft" data-t="${id}">${n.replace('التنظيف ','')}</button>`).join('')}</div>`;
 const dotsFor=ds=>{let o=occ(ds);if(UI.ft!=='all')o=o.filter(r=>FREQ[r.x.freq].type===UI.ft);return{o,ty:[...new Set(o.map(r=>FREQ[r.x.freq].type))]}};
@@ -902,7 +1065,7 @@ function vTasks(){
  const groups=Z.map(z=>{
   const ts=list.filter(x=>x.zone===z.id);if(!ts.length)return '';
   return `<div class="card zc"><div class="zh"><span style="font-size:22px">${z.ic}</span><h3>${z.ar}</h3><span class="sub">${ts.length} مهمة</span></div>`+
-  ts.map(x=>{const s=tstate(x);const st=statusText(x,s);return `<div class="trow"><div class="tt"><div class="tn">${esc(x.title)}</div><div class="ts ${st[1]}">${st[0]}<i>·</i>${x.mins||0} د${lastDone(x)?'<i>·</i>آخر مرة '+relTxt(lastDone(x)):''}</div></div>
+  ts.map(x=>{const s=tstate(x);const st=statusText(x,s);return `<div class="trow"><div class="tt"><div class="tn">${esc(x.title)}</div><div class="ts ${st[1]}">${st[0]}<i>·</i>${x.mins||0} د${PERIODIC(x.freq)&&taskWd(x)!==null?'<i>·</i>'+WDN[taskWd(x)]:''}${lastDone(x)?'<i>·</i>آخر مرة '+relTxt(lastDone(x)):''}</div></div>
    <select class="fsel" data-chg="freq" data-id="${x.id}" aria-label="التكرار">${freqOpts(x.freq)}</select>
    <button class="xbtn" data-act="edit" data-id="${x.id}" aria-label="تعديل">${ico('edit',17)}</button><button class="xbtn" data-act="del" data-id="${x.id}" aria-label="حذف">${ico('trash',17)}</button></div>`}).join('')+`</div>`;
  }).join('');
@@ -989,7 +1152,7 @@ function focusHTML(){
 
 /* ---------- الرسم العام ---------- */
 function render(){
- TD=iso(new Date());balance();ST=computeStats();G=globalStats();snapshot();
+ TD=iso(new Date());migrate();balance();ST=computeStats();G=globalStats();snapshot();
  $('#hdr').innerHTML=headerHTML();
  $('#nav').innerHTML=navHTML();
  const v=$('#view');v.innerHTML=VIEWS[UI.view]();
@@ -1152,6 +1315,7 @@ const Bar={sig:'',dismissed:{},
   if(Store.hold)a.push({c:'r',t:'⚠️ بياناتك المحفوظة على الجهاز اتلفت ومفيش نسخة تلقائية أقدر أستعيد منها. <b>مش هكتب فوقها</b> ولا هحفظ أي جديد لحد ما تختار.',b:[['dlCorrupt','تنزيل نسخة من التالف'],['import','استيراد نسخة'],['freshStart','ابدأ من جديد']]});
   if(Store.err)a.push({c:'r',t:'⚠️ <b>تعذّر حفظ آخر تغييراتك</b> '+(Store.err.name==='nostorage'?'(التخزين غير متاح في المتصفح ده — يمكن وضع التصفح الخاص).':'(المساحة ممتلئة أو التخزين مرفوض).')+' صدّر نسخة دلوقتي عشان ما تضيعش.',b:[['share','حفظ / مشاركة نسخة'],['export','تنزيل نسخة']]});
   if(n&&n.k==='restored')a.push({c:'a',t:`بياناتك كانت تالفة فاستُرجعت من نسخة تلقائية${n.day?' بتاريخ '+esc(n.day):''}. ممكن تكون خسرت تنفيذات آخر يوم. النسخة التالفة محفوظة.`,b:[['dlCorrupt','تنزيل التالف'],['dismiss','إخفاء','note']]});
+  if(n&&n.k==='schedule')a.push({c:'a',t:`📅 ${n.fix?'تم تصحيح الأيام: غرفة 2 = الأطفال (الاثنين) وغرفة 3 = التخزين (الثلاثاء).':`تم تفعيل نظام الأيام: كل غرفة ليها يوم ثابت في الأسبوع (الجمعة للمتأخر)${n.n?` واتضاف ${n.n} مهمة ناقصة`:''}.`} بياناتك القديمة كما هي.`,b:[['restorePre','تراجع'],['dismiss','فهمت','note']]});
   if(n&&n.k==='cleaned')a.push({c:'a',t:`اتشال ${n.n} سجل غير صالح من بياناتك المحفوظة (النسخة الأصلية محفوظة).`,b:[['dlCorrupt','تنزيل الأصل'],['dismiss','إخفاء','note']]});
   if(FSync.h&&FSync.state==='perm')a.push({c:'a',t:`الحفظ التلقائي في الملف <b>${esc(FSync.name)}</b> متوقف — المتصفح محتاج إذنك مرة في كل جلسة.`,b:[['fileGrant','تفعيل']]});
   if(FSync.h&&FSync.state==='error')a.push({c:'r',t:`فشلت الكتابة في الملف <b>${esc(FSync.name)}</b> (${esc(FSync.msg)}). بياناتك لسه محفوظة على الجهاز.`,b:[['fileGrant','إعادة المحاولة'],['fileCreate','اختيار ملف تاني']]});
@@ -1233,6 +1397,7 @@ const ACT={
  }
 };
 const CHG={
+ zday:el=>{if(!S.zday)S.zday={};S.zday[el.dataset.z]=+el.value;Store.save(S);render()},
  freq:el=>{const x=taskById(el.dataset.id);x.freq=el.value;Store.save(S);render()},
  tz:el=>{UI.tz=el.value;render()},
  tt:el=>{UI.tt=el.value;render()}
